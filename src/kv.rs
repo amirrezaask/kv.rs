@@ -15,6 +15,8 @@ impl Error for StorageError {}
 pub trait Storage<K, V> {
     fn get(&self, key: K) -> Result<V, StorageError>;
     fn put(&self, key: K, value: V) -> Result<(), StorageError>;
+    fn del(&self, key: K) -> Result<(), StorageError>;
+    fn pop(&self, key: K) -> Result<V, StorageError>;
 }
 
 pub struct HashMapStorage<K, V>(Arc<RwLock<HashMap<K, V>>>);
@@ -43,5 +45,21 @@ where
         let mut hm = arc.write().unwrap();
         hm.insert(key, val);
         Ok(())
+    }
+
+    fn del(&self, key: K) -> Result<(), StorageError> {
+        let arc = self.0.clone();
+        let mut hm = arc.write().unwrap();
+        hm.remove(&key);
+        Ok(())
+    }
+
+    fn pop(&self, key: K) -> Result<V, StorageError> {
+        let arc = self.0.clone();
+        let mut hm = arc.write().unwrap();
+        match hm.remove(&key) {
+            Some(val) => Ok(val.clone()),
+            None => Err(StorageError("key does not exists".to_string())),
+        }
     }
 }

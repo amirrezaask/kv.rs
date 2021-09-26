@@ -26,20 +26,17 @@ fn set(
     }
 }
 
-// #[delete("/<id>")]
-// fn del(storage: &State<kv::HashMapStorage<String, String>>, id: String) -> Json<Response<String>> {
-//     match storage.get(id) {
-//         Ok(v) => Json(http::KVResponse::new(
-//             "OK".to_string(),
-//             String::from("Deleted"),
-//         )),
-//         Err(e) => Json(http::KVResponse::new("Error".to_string(), e.to_string())),
-//     }
-// }
+#[delete("/<id>")]
+fn del(storage: &State<kv::HashMapStorage<String, String>>, id: String) -> Json<String> {
+    match storage.del(id) {
+        Ok(_) => Json("Deleted".to_string()),
+        Err(e) => Json(format!("{}", e)),
+    }
+}
 
 #[launch]
 fn launch() -> _ {
     rocket::build()
         .manage(kv::HashMapStorage::<String, String>::new())
-        .mount("/", routes![get, set])
+        .mount("/", routes![get, set, del])
 }
